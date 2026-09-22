@@ -22,6 +22,7 @@ const launcher = await readFile(new URL('../packaging/macos/FPAApp.swift', impor
 assert.match(build, /sharp-darwin-\$\{SHARP_ARCH\}/);
 assert.match(build, /hdiutil create/);
 assert.match(build, /codesign --verify/);
+assert.match(build, /swiftc -parse-as-library/);
 assert.match(build, /Library\/Application Support\/FPA/);
 assert.match(workflow, /macos-15-intel/);
 assert.match(workflow, /macos-15/);

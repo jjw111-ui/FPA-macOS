@@ -84,7 +84,7 @@ done
 
 cp "$(command -v node)" "$NODE_DIR/node"
 chmod +x "$NODE_DIR/node"
-swiftc -O -framework Cocoa "${SCRIPT_DIR}/FPAApp.swift" -o "$MACOS_DIR/FPA"
+swiftc -parse-as-library -O -framework Cocoa "${SCRIPT_DIR}/FPAApp.swift" -o "$MACOS_DIR/FPA"
 chmod +x "$MACOS_DIR/FPA"
 lipo -archs "$NODE_DIR/node" | grep -qw "$HOST_ARCH"
 lipo -archs "$MACOS_DIR/FPA" | grep -qw "$HOST_ARCH"
