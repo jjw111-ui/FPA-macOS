@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>线稿成衣 · FPA</title>
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./output-controls.css">
+  <link rel="stylesheet" href="./sketch.css">
+  <link rel="stylesheet" href="./full-paint-host.css">
+  <link rel="stylesheet" href="./paint-board.css">
+</head>
+<body>
+  <div class="sketch-app">
+    <header class="sketch-topbar">
+      <div class="sketch-progress"><span id="draftStatus" role="status">正在读取草稿…</span></div>
+      <div class="sketch-actions">
+        <div class="sketch-convert" id="sketchConvert">
+          <input type="hidden" id="sketchProvider" value="existing">
+          <button class="btn" id="convertSketchBtn" type="button" disabled aria-expanded="false" aria-controls="sketchConvertOptions">转为线稿 ▾</button>
+          <div class="sketch-convert-options" id="sketchConvertOptions" hidden aria-label="线稿类型"><button class="btn" type="button" data-sketch-provider="existing">平面线稿</button><button class="btn" type="button" data-sketch-provider="quiver">矢量线稿</button></div>
+        </div>
+        <button class="btn btn-ghost" id="clearBtn" type="button" title="清空当前画布、参考图和款式标注设置，保留素材库与生成记录">一键清除</button>
+        <button class="btn btn-primary" id="generateBtn" type="button" disabled>生成真实成衣</button>
+      </div>
+    </header>
+    <main class="sketch-workspace is-materials-open" id="workspace">
+      <aside class="panel library sketch-library" id="sourceLibrary" aria-label="线稿参考图库">
+        <div class="panel-head"><div class="panel-title"><h2>参考图库</h2><span class="count" id="sourceCount">0 项</span></div><p class="panel-desc" id="sourceDescription">照片或线稿都可直接编辑。新导入会替换当前画布。</p><label class="upload-label"><input id="sourceFile" type="file" accept="image/png,image/jpeg,image/webp"><span id="uploadSourceText">＋ 上传照片 / 线稿</span></label><button class="btn" id="sourceLibraryBtn" type="button">从素材库选择</button></div>
+        <div class="thumb-list" id="sourceList"></div>
+      </aside>
+      <section class="sketch-stage" aria-label="线稿画板">
+        <div class="sketch-preview-heading"><span id="previewTitle">设计画板</span><div class="sketch-preview-tools"><button class="tool" id="viewSourceBtn" type="button" hidden>查看转换前</button><button class="tool" id="materialsPanelBtn" type="button" aria-pressed="false">材料与出图设置</button><button class="tool" id="focusCanvasBtn" type="button" aria-pressed="false">专注画板</button><button class="tool" id="exportCanvasBtn" type="button" disabled>导出 PNG</button><span class="count" id="referenceCount">0 / 10 张参考图</span></div></div>
+        <div id="paintToolbar" aria-label="画板工具"></div>
+        <div class="sketch-canvas-wrap" id="canvasWrap">
+          <div class="sketch-empty" id="emptyPreview"><strong id="emptyTitle">尚未打开画板</strong><p>拖入或粘贴图片，也可通过左侧添加。</p><button class="btn" id="emptyNewCanvasBtn" type="button">新建空白画板</button></div>
+          <div class="sketch-canvas-shell" id="canvasShell" hidden><img id="canvasImage" alt="当前款式预览" draggable="false"><div id="regionLayer" class="sketch-region-layer" aria-label="局部区域"></div></div>
+        </div>
+        <div class="sketch-board-hint" id="boardHint">尚未打开文档</div>
+        <fieldset id="annotationDock" class="sketch-annotation-dock" disabled aria-label="当前项目标注">
+          <div class="sketch-annotation-list">
+            <div class="sketch-annotation-heading"><strong>当前项目标注</strong><span class="count" id="regionCount">0 处</span></div>
+            <div id="regionsEmpty" class="sketch-annotation-empty">框选服装局部，或添加标注</div>
+            <div id="regionOverview" class="sketch-region-overview" role="group" aria-label="标注与修改内容"></div>
+          </div>
+          <div class="sketch-annotation-help"><span>框选局部，自动填写部位与细节。</span><div class="sketch-annotation-actions"><button class="tool" id="markRegionBtn" type="button">框选标注</button><button class="tool" id="drawRegionBtn" type="button" title="将已有画板选区关联到修改说明">使用选区</button><button class="tool" id="addRegionBtn" type="button">手动添加标注</button></div></div>
+        </fieldset>
+        <section id="candidateSection" class="sketch-candidates" hidden aria-label="选择其他线稿"><div id="candidateList" class="sketch-image-strip"></div></section>
+        <div class="sketch-status" id="generateStatus" role="status" aria-live="polite"></div>
+      </section>
+      <aside class="sketch-inspector">
+        <div class="sketch-inspector-heading"><div class="sketch-inspector-tabs" role="tablist" aria-label="设计设置模块"><button id="inspector-tab-product" type="button" role="tab" aria-selected="true" aria-controls="inspector-panel-product" data-inspector-tab="product">款式设定</button><button id="inspector-tab-output" type="button" role="tab" aria-selected="false" aria-controls="inspector-panel-output" tabindex="-1" data-inspector-tab="output">出图设置</button></div><button class="tool" id="closeMaterialsBtn" type="button" title="收起设置" aria-label="收起材料与出图设置">×</button></div>
+        <div id="inspector-panel-product" role="tabpanel" aria-labelledby="inspector-tab-product" data-inspector-panel="product">
+        <section class="sketch-section"><p class="sketch-module-help" id="workflowHint">按当前画布生成成衣，局部修改以编号标注为准。</p><label for="designName">设计名称（可选）</label><input class="input" id="designName" maxlength="160" placeholder="给这次设计起个名字"><label for="designNote" id="designNoteLabel">整体设计要求（可选）</label><textarea class="textarea" id="designNote" rows="3" maxlength="4000" placeholder="描述整体效果；具体部位请在画布上标注"></textarea><button class="btn btn-primary sketch-vector-generate" id="vectorGenerateBtn" type="button" hidden>生成真实成衣</button></section>
+        <details id="globalMaterials" class="sketch-global-materials" open><summary>整体面料与配色</summary>
+        <fieldset id="materials" class="sketch-materials" disabled>
+          <section class="sketch-section"><div class="sketch-section-heading"><h2>面料</h2><span class="sketch-section-meta">整件应用</span></div>
+            <label for="fabricMode">面料来源</label><select class="select" id="fabricMode"><option value="primary">沿用主体款式</option><option value="image">参考图片</option><option value="text">文字描述</option></select>
+            <div id="fabricImageFields"><div class="sketch-upload-row"><label class="btn file-button"><input id="fabricFile" type="file" accept="image/png,image/jpeg,image/webp"><span>上传面料</span></label><button class="btn" id="fabricLibraryBtn" type="button">素材库</button></div><div id="fabricPreview" class="sketch-material-preview" hidden></div></div>
+            <label for="fabricText" id="fabricTextLabel">面料补充说明（可选）</label><textarea class="textarea" id="fabricText" rows="2" maxlength="2000" placeholder="细密棉斜纹，柔软哑光"></textarea>
+          </section>
+          <section class="sketch-section"><h2>配色</h2><label for="colorMode">配色来源</label><select class="select" id="colorMode"><option value="auto">跟随面料颜色</option><option value="image">色卡图片</option><option value="custom">自选颜色 / HEX</option><option value="text">文字配色 / 自由配色</option></select>
+            <div id="colorImageFields" hidden><div class="sketch-upload-row"><label class="btn file-button"><input id="colorFile" type="file" accept="image/png,image/jpeg,image/webp"><span>上传色卡</span></label></div><div id="colorPreview" class="sketch-material-preview" hidden></div></div>
+            <div id="colorCustomFields" class="sketch-color-fields" hidden><label for="colorPicker">颜色<input id="colorPicker" type="color" value="#687A5E"></label><label for="colorHex">HEX 色值<input class="input" id="colorHex" maxlength="7" value="#687A5E" autocomplete="off" spellcheck="false"></label></div>
+            <div id="colorTextFields" hidden><label for="colorText">配色说明</label><textarea class="textarea" id="colorText" rows="2" maxlength="2000" placeholder="米白为主色，领口深绿；或填写自由配色"></textarea></div>
+          </section>
+          <section class="sketch-section"><div class="sketch-section-heading"><h2>辅料</h2><span class="sketch-section-meta">可选</span></div><div class="sketch-upload-row"><label class="btn file-button"><input id="trimsFile" type="file" accept="image/png,image/jpeg,image/webp" multiple><span>上传辅料</span></label><button class="btn" id="trimsLibraryBtn" type="button">素材库</button></div><div id="trimsList" class="sketch-trims-list"></div></section>
+        </fieldset>
+        </details>
+          <div id="inspector-panel-local">
+          <fieldset id="localEdits" class="sketch-materials" disabled><section class="sketch-section"><details id="regionsDetails" open><summary>当前标注设置</summary><div id="regionsList"></div></details></section></fieldset>
+          </div>
+        </div>
+        <div id="inspector-panel-output" role="tabpanel" aria-labelledby="inspector-tab-output" data-inspector-panel="output" hidden>
+        <section class="sketch-section sketch-output">
+          <details id="outputDetails" open><summary>画面与数量</summary><div class="design-output-controls" id="designOutputControls">
+            <span class="output-label">画面比例</span><select id="outputAspect" hidden><option value="3:4">3:4</option></select><div class="design-ratios" id="designRatios" role="radiogroup" aria-label="图片比例"></div>
+            <select id="outputResolution" hidden><option value="1K">1K</option></select><select id="outputCount" hidden><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select><select id="outputModeration" hidden><option value="auto">自动</option><option value="low">低</option></select><select id="outputSafety" hidden><option value="off">关闭过滤</option><option value="block_all">拦截全部</option><option value="default">接口默认</option></select><select id="outputSearch" hidden><option value="false">关闭</option><option value="true">开启</option></select>
+            <p class="output-help" id="outputCapabilityHint"></p><div class="design-output-grid" id="designOutputGroups"></div><p class="output-pixels" id="outputPixelSummary" aria-live="polite"></p><button class="btn" id="reloadOutputBtn" type="button" hidden>重新读取出图选项</button>
+          </div></details>
+        </section>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <dialog class="sketch-new-dialog" id="newCanvasDialog" aria-labelledby="newCanvasTitle"><form id="newCanvasForm"><h2 id="newCanvasTitle">新建线稿画板</h2><p>空白起稿，画完即可选择面料生成成衣。不会调用 AI。</p><div class="sketch-new-size"><label for="newCanvasWidth">宽度（像素）<input class="input" id="newCanvasWidth" type="number" min="256" max="4096" step="1" value="1200" required></label><label for="newCanvasHeight">高度（像素）<input class="input" id="newCanvasHeight" type="number" min="256" max="4096" step="1" value="1600" required></label></div><p id="newCanvasError" role="alert"></p><footer><button class="btn" id="cancelCanvasBtn" type="button">取消</button><button class="btn btn-primary" id="createCanvasBtn" type="submit">创建画板</button></footer></form></dialog>
+  <dialog class="asset-picker sketch-picker" id="assetPicker" aria-labelledby="assetPickerTitle"><header class="asset-picker-head"><h2 id="assetPickerTitle">从素材库选择</h2><button class="btn" id="closeAssetPickerBtn" type="button" aria-label="关闭素材选择">关闭</button></header><div class="asset-picker-filters"><label for="assetSearch">搜索素材<input class="input" id="assetSearch" type="search"></label><label for="assetCategory">分类<select class="select" id="assetCategory"><option value="">全部分类</option></select></label></div><div class="asset-picker-feedback"><p id="assetPickerStatus" role="status"></p><button class="btn" id="reloadAssetsBtn" type="button" hidden>重新加载</button></div><div class="asset-picker-grid" id="assetPickerGrid"></div><div class="asset-picker-pages"><button class="btn" id="assetPrevBtn" type="button">上一页</button><span id="assetPageInfo"></span><button class="btn" id="assetNextBtn" type="button">下一页</button></div><footer class="asset-picker-footer"><span id="assetSelectionCount"></span><button class="btn btn-primary" id="addAssetsBtn" type="button" disabled>确认选择</button></footer></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./paint-icons.js" defer></script>
+  <script src="./paint-board.js" defer></script>
+  <script src="./light-paint-adapter.js" defer></script>
+  <script src="./sketch.js" defer></script>
+  <script src="./output-controls.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+/* The action area occupies its own row, so it never covers the last setting. */
+.ws-composer { padding: 0; }
+.ws-composer-title { padding: 18px 20px 12px; }
+.ws-composer-title-actions { display: flex; align-items: center; gap: 10px; }
+.ws-composer-title-actions > span { font-size: 10px; color: #879277; white-space: nowrap; }
+.ws-clear-picked { border: 1px solid #dce3cf; border-radius: 5px; background: #f7f9f2; color: #627447; padding: 6px 8px; min-height: 30px; font: inherit; font-size: 11px; white-space: nowrap; }
+.ws-clear-picked:hover:not(:disabled) { background: #eaf0df; border-color: #bbc9a4; }
+.ws-clear-picked:focus-visible { outline: 2px solid #7b905b; outline-offset: 2px; }
+.ws-composer-scroll { min-width: 0; padding: 0 20px 20px; }
+.ws-composer-scroll:focus-visible { outline: 2px solid #aabb75; outline-offset: -3px; }
+.ws-composer-actions { padding: 12px 20px 16px; border-top: 1px solid #e1e5d7; background: #fff; border-radius: 0 0 8px 8px; }
+.ws-composer-actions .ws-note { margin: 0 0 10px; color: #727d63; }
+.ws-composer-actions .ws-generate { min-height: 48px; }
+
+@media (min-width: 901px) {
+  .ws-main.is-composing {
+    height: 100dvh;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .is-composing > .ws-topbar { height: 64px; flex: 0 0 64px; }
+  .is-composing > .ws-heading { padding: 18px 0; flex: 0 0 auto; }
+  .is-composing > .ws-heading h1 { font-size: 23px; }
+  .is-composing > .ws-heading .ws-eyebrow { display: none; }
+  .is-composing > .ws-heading p { margin-top: 6px; }
+  .is-composing > .ws-heading .ws-counter { display: none; }
+  /* The library's category tabs already provide every category. */
+  .is-composing > .ws-quick-links { display: none; }
+  .is-composing > .ws-notice, .is-composing > .ws-error { flex-shrink: 0; }
+  .is-composing > .ws-page-footer { margin: 0; padding: 10px 0; flex: 0 0 auto; }
+  .is-composing .ws-workspace.composing {
+    flex: 1 1 0;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) 335px;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .is-composing .ws-library { min-height: 0; overflow-y: auto; scrollbar-gutter: stable; padding-right: 8px; }
+  .is-composing .ws-composer {
+    min-height: 0;
+    height: 100%;
+    max-height: none;
+    align-self: stretch;
+    position: static;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .is-composing .ws-composer-title, .is-composing .ws-composer-actions { flex: 0 0 auto; }
+  .is-composing .ws-composer-scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; scroll-padding-block: 12px; }
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+  .is-composing .ws-workspace.composing { grid-template-columns: minmax(0, 1fr) 310px; gap: 18px; }
+  .is-composing .ws-composer-title, .is-composing .ws-composer-scroll, .is-composing .ws-composer-actions { padding-left: 16px; padding-right: 16px; }
+}

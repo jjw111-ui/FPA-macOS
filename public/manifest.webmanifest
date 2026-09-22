@@ -1,0 +1,13 @@
+{
+  "name": "FPA · 你的设计搭子",
+  "short_name": "FPA",
+  "description": "管理服装、人物、姿势和配饰，自由生成搭配图。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f0e8",
+  "theme_color": "#f4f0e8",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

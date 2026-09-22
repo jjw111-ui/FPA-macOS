@@ -1,0 +1,22 @@
+.ws-main.is-designing { height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.is-designing > .ws-topbar { height: 64px; flex: 0 0 64px; }
+.is-designing > .ws-heading { padding: 16px 0; flex: 0 0 auto; }
+.is-designing > .ws-heading h1 { font-size: 23px; }
+.is-designing > .ws-heading p { margin-top: 6px; }
+.is-designing > .ws-heading .ws-eyebrow { display: none; }
+.ws-main.is-designing:has(.ws-design-host.is-sketch) > .ws-heading { display:none; }
+.is-designing > .ws-page-footer { margin: 0; padding: 10px 0; flex: 0 0 auto; }
+.is-designing > .ws-notice, .is-designing > .ws-error { flex-shrink: 0; }
+.ws-design-host { position: relative; flex: 1 1 0; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.ws-design-host[hidden] { display: none; }
+.ws-design-host.is-focused { position:fixed; inset:12px; z-index:100; padding:12px; border:1px solid #e1e5d7; border-radius:10px; background:#f7f8f3; box-shadow:0 0 0 20px #f7f8f3; }
+.ws-design-host.is-focused .ws-design-modes { display:none; }
+.ws-design-modes { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; margin-bottom: 8px; }
+.ws-design-modes button { border: 1px solid transparent; border-radius: 6px; padding: 9px 20px; background: transparent; color: #68725e; font: inherit; font-size: 13px; cursor: pointer; }
+.ws-design-modes button[aria-selected="true"] { background: #eef2e5; border-color: #a4b18c; color: #40552c; font-weight: 600; }
+.ws-design-modes button:focus-visible { outline: 2px solid #657648; outline-offset: 2px; }
+.ws-design-modes span { margin-left: auto; font-size: 11px; color: #68725e; }
+.ws-design-panel { position: relative; flex: 1 1 0; min-height: 0; }
+.ws-design-panel[hidden] { display: none; }
+.ws-design-frame { width: 100%; height: 100%; min-height: 0; border: 0; border-radius: 8px; background: #f7f8f3; }
+.ws-design-loading { position: absolute; inset: 0; display: grid; place-items: center; color: #65714f; background: #f7f8f3; }

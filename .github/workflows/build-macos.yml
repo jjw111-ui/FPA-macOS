@@ -1,0 +1,92 @@
+name: Build FPA for macOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version
+        required: true
+        default: 1.0.0
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: x64
+            runner: macos-15-intel
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify macOS project files
+        run: npm run verify:macos
+
+      - name: Build app and DMG
+        shell: bash
+        run: bash packaging/macos/build-app.sh --output-dir "dist-macos/${{ matrix.arch }}" --version "${{ steps.version.outputs.value }}"
+
+      - name: Verify architecture and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"architecture": "${{ matrix.arch }}"' "dist-macos/${{ matrix.arch }}/macos-app-build.json"
+          test -f "dist-macos/${{ matrix.arch }}/FPA-macOS-${{ matrix.arch }}-${{ steps.version.outputs.value }}.dmg"
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: FPA-macOS-${{ matrix.arch }}-${{ steps.version.outputs.value }}
+          path: |
+            dist-macos/${{ matrix.arch }}/*.dmg
+            dist-macos/${{ matrix.arch }}/*.sha256.txt
+            dist-macos/${{ matrix.arch }}/macos-app-build.json
+          if-no-files-found: error
+
+  release:
+    name: Attach installers to release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh release create "$GITHUB_REF_NAME" release-assets/* --repo "$GITHUB_REPOSITORY" --generate-notes

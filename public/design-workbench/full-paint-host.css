@@ -1,0 +1,102 @@
+/* Full drawing editor lives in the same source/document coordinates as generation. */
+.sketch-app { min-height:400px; grid-template-rows:48px minmax(0,1fr); }
+.sketch-topbar { padding:7px 12px; }
+.sketch-topbar { position:relative; z-index:30; }
+#draftStatus { display:none; }
+.sketch-sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media (max-width:760px) { .sketch-progress { gap:7px; } .sketch-progress #draftStatus { max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .sketch-topbar { gap:6px; padding-inline:8px; } .sketch-actions { gap:5px; } }
+.sketch-workspace { grid-template-columns:170px minmax(0,1fr) 320px; position:relative; }
+.sketch-library { grid-template-rows:auto minmax(0,1fr); }
+.sketch-library #sourceLibraryBtn { width:100%; margin-top:8px; }
+.sketch-library .upload-label:has(input:disabled) { opacity:.5; cursor:not-allowed; }
+.sketch-library .thumb-select { cursor:pointer; }
+.sketch-library .thumb-select:disabled { opacity:.65; cursor:not-allowed; }
+.sketch-library .sketch-blank-thumb { display:grid; place-items:center; height:112px; color:var(--muted); background:var(--surface-2); font-size:11px; }
+.sketch-library .sketch-blank-thumb::before { content:''; width:48px; height:64px; border:1px solid var(--border); background:white; grid-area:1/1; }
+.sketch-workspace.is-paint-focused .sketch-library { display:none; }
+.sketch-workspace .sketch-inspector { display:block; min-height:0; scroll-padding-top:58px; }
+.sketch-workspace.is-paint-focused { grid-template-columns:minmax(0,1fr); }
+.sketch-workspace.is-paint-focused .sketch-inspector { display:none; }
+.sketch-workspace.is-paint-focused.is-materials-open { grid-template-columns:minmax(0,1fr) 320px; }
+.sketch-workspace.is-paint-focused.is-materials-open .sketch-inspector { display:block; }
+.sketch-workspace:not(.is-paint-focused) :is(#materialsPanelBtn,#closeMaterialsBtn) { display:none; }
+.sketch-inspector-tabs { display:flex; flex:1; min-width:0; }
+.sketch-inspector-tabs button { flex:1; padding:17px 3px 14px; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--muted); font:inherit; font-size:12px; white-space:nowrap; cursor:pointer; }
+.sketch-inspector-tabs button[aria-selected=true] { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+.sketch-inspector-tabs button:focus-visible { outline:2px solid var(--accent); outline-offset:-3px; }
+.sketch-inspector [data-inspector-panel][hidden] { display:none; }
+.sketch-module-help { margin:0 0 16px; color:var(--muted); font-size:12px; line-height:1.7; }
+.sketch-module-help { padding:10px 12px; background:var(--accent-soft); border-left:2px solid var(--accent); }
+#materials[hidden] { display:none; }
+#annotationTabCount { display:inline-block; min-width:15px; padding:0 3px; border-radius:3px; background:var(--surface-2); font-size:10px; }
+.sketch-annotation-empty { margin:14px 0; padding:20px 10px; color:var(--muted); font-size:12px; line-height:1.7; text-align:center; border:1px dashed var(--border); border-radius:6px; }
+.sketch-annotation-empty[hidden] { display:none; }
+.sketch-region-editor { border:1px solid var(--border); border-radius:6px; padding:12px; margin:12px 0; background:var(--surface); }
+.sketch-region-editor.active { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent-soft); }
+.sketch-annotation-dock { flex:0 0 96px; min-width:0; min-height:0; margin:0; padding:0; border:0; border-top:1px solid var(--border); background:var(--surface); display:grid; grid-template-columns:minmax(0,1fr) 126px; }
+.sketch-annotation-dock.has-regions { flex-basis:132px; }
+.sketch-annotation-dock:disabled { opacity:.55; }
+.sketch-annotation-list { grid-column:1; min-width:0; min-height:0; overflow:hidden; padding:10px; }
+.sketch-annotation-heading { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px; font-size:11px; }
+.sketch-annotation-heading strong { font-weight:500; }
+.sketch-annotation-heading .count { margin-left:5px; }
+.sketch-annotation-actions { display:flex; flex-direction:column; gap:6px; }
+.sketch-annotation-actions .tool { width:100%; padding:6px 7px; font-size:11px; white-space:nowrap; }
+.sketch-annotation-help { grid-column:2; grid-row:1; padding:10px; border-left:1px solid var(--border); color:var(--muted); font-size:10px; line-height:1.6; display:flex; flex-direction:column; justify-content:center; gap:7px; }
+.sketch-annotation-help > span { display:block; }
+.sketch-annotation-help .sketch-annotation-actions { display:flex; flex-direction:column; gap:6px; }
+.sketch-annotation-help .sketch-annotation-actions > :is(#markRegionBtn,#drawRegionBtn) { display:none; }
+.sketch-annotation-dock .sketch-annotation-empty { margin:0; padding:3px 0; border:0; text-align:left; font-size:11px; white-space:normal; }
+.sketch-region-overview { display:flex; flex-direction:column; gap:5px; min-height:0; overflow:hidden; padding:2px; }
+.sketch-region-overview[hidden] { display:none; }
+.sketch-annotation-row { display:grid; grid-template-columns:30px minmax(0,1fr) 26px; align-items:center; gap:6px; min-height:44px; }
+.sketch-annotation-row .textarea { height:44px; min-height:44px; padding:6px 8px; line-height:1.4; resize:none; font-size:12px; }
+.sketch-annotation-row.active .textarea { border-color:var(--accent); }
+.sketch-annotation-row .sketch-remove { width:26px; height:30px; border:0; }
+.sketch-region-choice { display:grid; place-items:center; width:30px; height:30px; padding:0; border:1px solid var(--border); border-radius:4px; background:var(--surface); color:var(--accent); font:inherit; cursor:pointer; }
+.sketch-region-choice[aria-pressed=true] { border-color:var(--accent); background:var(--accent-soft); }
+.sketch-region-choice:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.sketch-region-choice:disabled { opacity:.5; cursor:not-allowed; }
+.sketch-region-editor textarea { min-height:82px; resize:vertical; }
+.sketch-region-editor { scroll-margin-top:58px; }
+#inspector-panel-local[hidden] { display:none; }
+.sketch-global-materials > summary { padding:14px 18px; cursor:pointer; font-weight:500; border-bottom:1px solid var(--border); }
+.sketch-local-materials { margin-top:16px; padding-top:4px; border-top:1px solid var(--border); }
+.sketch-local-materials .sketch-upload-row { margin:8px 0; }
+.sketch-local-materials .sketch-upload-row > * { flex:1; min-width:0; }
+.sketch-local-materials textarea { min-height:64px; }
+.sketch-local-materials input[type=color] { width:42px; height:34px; padding:2px; border:1px solid var(--border); background:var(--surface); }
+.sketch-region-editor .sketch-remove { width:26px; height:26px; border-color:transparent; }
+.sketch-region-locate { border:0; border-radius:4px; padding:5px 8px; background:var(--accent-soft); color:var(--accent); font:inherit; font-weight:600; cursor:pointer; }
+.sketch-region-details { margin-top:12px; font-size:11px; color:var(--muted); }
+.sketch-region-details summary { font-weight:400; }
+.sketch-manual-region { width:100%; margin-top:8px; border-style:dashed; color:var(--muted); }
+.sketch-region-tools { flex-wrap:wrap; }
+.sketch-region-tools > button { flex:1; padding:8px 6px; font-size:11px; }
+.sketch-output #outputDetails { margin-top:0; }
+.sketch-sourcebar { padding:7px 12px; gap:6px; }
+.sketch-entry span { padding:5px 8px; }
+.sketch-preview-heading { padding:6px 12px; min-height:40px; }
+.sketch-preview-heading { position:relative; z-index:21; background:var(--surface-2); }
+.sketch-inspector-heading { position:sticky; top:0; z-index:3; display:flex; justify-content:space-between; align-items:center; padding:0 10px; border-bottom:1px solid var(--border); background:var(--surface); }
+.sketch-inspector-heading strong { font-size:12px; font-weight:500; }
+.sketch-preview-tools { gap:6px; }
+.sketch-board-hint { padding:5px 12px; }
+.sketch-status:empty { display:none; }
+#paintToolbar { display:none; }
+#canvasShell { display:none !important; }
+.sketch-canvas-wrap { padding:0; min-height:240px; }
+.fpa-full-paint-frame { position:absolute; inset:0; width:100%; height:100%; border:0; background:var(--surface-2); }
+.fpa-full-paint-frame[hidden] { display:none; }
+.sketch-empty { position:relative; z-index:2; background:var(--bg) radial-gradient(circle, #dce2d1 1px, transparent 1px); background-size:16px 16px; width:100%; height:100%; justify-content:center; }
+.sketch-empty[hidden] { display:none; }
+.sketch-empty p { max-width:440px; line-height:1.8; }
+.full-paint-loading { position:absolute; z-index:3; inset:0; background:var(--surface-2); display:grid; place-content:center; text-align:center; gap:10px; color:var(--muted); }
+.full-paint-loading[hidden] { display:none; }
+.full-paint-loading button { justify-self:center; }
+.sketch-region-help { font-size:11px; line-height:1.7; color:var(--muted); }
+#materialsPanelBtn[aria-pressed=true] { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+@media (max-width:1050px) {
+  .sketch-workspace { grid-template-columns:150px minmax(0,1fr) 300px; }
+  .sketch-workspace.is-paint-focused.is-materials-open { grid-template-columns:minmax(0,1fr) 300px; }
+}

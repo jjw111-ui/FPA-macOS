@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:," />
+  <title>设计工作台 · FPA</title>
+  <link rel="stylesheet" href="./app.css" />
+  <link rel="stylesheet" href="./output-controls.css" />
+  <link rel="stylesheet" href="./style-controls.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="top-status"><b>选主体 · 标局部 · 生成新款</b><span id="draftStatus" role="status">草稿自动保存在本机</span></div>
+      <div class="top-actions">
+        <button class="btn btn-ghost" id="clearDesignBtn" type="button" title="清除本次参考图和标注，保留款式设置、素材库和生成记录" disabled>一键清除</button>
+        <button class="btn btn-generate" id="generateTopBtn">生成效果图</button>
+        <button class="btn" id="copyTopBtn">复制提示词</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel library">
+        <div class="panel-head">
+          <div class="panel-title"><h2>参考图库</h2><span class="count" id="imageCount">0 张</span></div>
+          <p class="panel-desc">上传参考图后，选择一张主体款式，再从其它图片标注局部结构。</p>
+          <label class="upload-label" for="fileInput">
+            <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple />
+            <span>＋ 上传参考图片</span>
+          </label>
+          <button class="btn library-picker-button" id="openAssetPickerBtn" type="button">从素材库选择</button>
+        </div>
+        <div class="thumb-list" id="thumbList"></div>
+        <div class="library-foot">点击缩略图切换画布。双击缩略图可设为主体款式。</div>
+      </aside>
+
+      <section class="stage">
+        <div class="toolbar">
+          <div class="tool-group">
+            <button class="tool active" data-tool="box" aria-pressed="true">框选标注</button>
+            <button class="tool" data-tool="select" aria-pressed="false">选择标注</button>
+            <button class="tool ai-tool" id="analyzeBtn">AI 识别本图</button>
+            <button class="tool" id="deleteAnnBtn">删除标注</button>
+            <button class="tool" id="primaryBtn">设为主体款式</button>
+          </div>
+          <div class="tool-group">
+            <span class="zoom" id="activeImageName">未选择参考图</span>
+            <label class="auto-label"><input type="checkbox" id="autoAnalyze" checked /> 框选后自动识别</label>
+          </div>
+        </div>
+
+        <div class="canvas-wrap" id="canvasWrap">
+          <div class="empty-canvas" id="emptyCanvas"><b>添加一张服装参考图开始</b>上传图片或从素材库选择，之后可在图片上拖动矩形标注领型、口袋、袖口等局部。</div>
+          <div class="canvas-shell" id="canvasShell" hidden>
+            <img id="canvasImage" alt="服装参考图" />
+            <div class="canvas-layer" id="canvasLayer" aria-label="在参考图片上拖动框选局部"></div>
+          </div>
+        </div>
+
+        <div class="annotation-dock">
+          <div class="annotation-list">
+            <div class="dock-head"><strong>当前项目标注</strong><span class="count" id="annCount">0 处</span></div>
+            <div class="ann-chips" id="annChips"></div>
+          </div>
+          <div class="dock-help"><span>框选局部，自动填写部位与细节。</span><button class="tool" id="manualAnnBtn">手动添加标注</button></div>
+        </div>
+      </section>
+
+      <aside class="panel inspector">
+        <div class="inspector-tabs">
+          <button class="tab active" data-tab="design">款式设定</button>
+          <button class="tab" data-tab="annotation">标注属性</button>
+          <button class="tab" data-tab="prompt">设计提示词</button>
+          <button class="tab" data-tab="generate">出图设置</button>
+        </div>
+
+        <div class="tab-view active" id="tab-design">
+          <div class="notice">主体款式决定整体骨架；局部参考只贡献被标注的部位，避免多张图争夺整体结构。</div>
+          <div class="section-label">基础款式</div>
+          <div class="form-grid">
+            <div class="field"><label for="category">品类</label><select class="select compile" id="category"><option>夹克</option><option>风衣</option><option>羽绒服</option><option>衬衫</option><option>针织上衣</option><option>裤装</option><option>裙装</option></select></div>
+            <div class="field"><label for="fit">版型</label><select class="select compile" id="fit"><option>短款宽松</option><option>常规合体</option><option>超宽松</option><option>修身</option><option>长款直身</option></select></div>
+            <div class="field full"><label for="goal">设计目标</label><textarea class="textarea compile" id="goal" placeholder="可选：描述这一款想实现的设计效果"></textarea></div>
+          </div>
+          <div id="styleControls"></div>
+          <details class="design-extra"><summary>配色比例与五金（可选）</summary>
+            <div class="field"><label for="colorRatio">配色比例</label><input class="input compile" id="colorRatio" placeholder="例如：米白 70%，深绿 30%" maxlength="1000"/></div>
+            <div class="field"><label for="hardware">五金说明</label><input class="input compile" id="hardware" placeholder="例如：银色拉链；留空沿用主体款式" maxlength="1000"/></div>
+          </details>
+          <div class="section-label">设计约束</div>
+          <div class="field"><label for="mustKeep">必须保留</label><textarea class="textarea compile" id="mustKeep">主体款式的整体长度、肩部松量和中心门襟逻辑。</textarea></div>
+          <div class="field"><label for="avoid">禁止出现</label><textarea class="textarea compile" id="avoid">不要复制品牌 Logo；不要变成普通基础款；不要生成拼贴、分屏、背面小图或多件服装。</textarea></div>
+        </div>
+
+        <div class="tab-view" id="tab-annotation">
+          <div id="annotationEmpty" class="notice">请先在画布上创建或选择一个标注区域。</div>
+          <div id="annotationForm" hidden>
+            <div class="annotation-heading"><div class="section-label">标注区域</div><button class="tool ai-tool" id="reanalyzeRegionBtn" type="button">重新识别此处</button></div>
+            <p class="region-analysis-status" id="regionAnalysisStatus" role="status" aria-live="polite"></p>
+            <details class="region-position"><summary>调整框选位置</summary><div class="form-grid"><div class="field"><label for="annX">左侧位置（%）</label><input class="input region-edit" id="annX" type="number" min="0" max="97" /></div><div class="field"><label for="annY">顶部位置（%）</label><input class="input region-edit" id="annY" type="number" min="0" max="97" /></div><div class="field"><label for="annW">宽度（%）</label><input class="input region-edit" id="annW" type="number" min="3" max="100" /></div><div class="field"><label for="annH">高度（%）</label><input class="input region-edit" id="annH" type="number" min="3" max="100" /></div></div></details>
+            <div class="form-grid">
+              <div class="field"><label for="annPart">服装部位</label><select class="select ann-edit" id="annPart"><option>领型</option><option>帽型</option><option>肩部</option><option>袖型</option><option>袖口</option><option>门襟</option><option>胸袋</option><option>下袋</option><option>分割线</option><option>下摆</option><option>面料质感</option><option>装饰结构</option><option>图案</option><option>其他结构</option></select></div>
+              <div class="field"><label for="annPlacement">应用位置</label><input class="input ann-edit" id="annPlacement" value="对应部位" /></div>
+              <div class="field full"><label for="annMode">作用方式</label><select class="select ann-edit" id="annMode"><option value="retain">严格保留结构</option><option value="adapt">借鉴并调整</option><option value="mood">仅参考视觉语言</option></select></div>
+              <div class="field full"><label for="annNote">局部说明</label><textarea class="textarea ann-edit" id="annNote">保留该区域的结构关系和体积感，不继承原图其它部位。</textarea></div>
+            </div>
+            <div class="section-label">影响权重</div>
+            <div class="priority-row" id="priorityRow">
+              <button class="priority" data-priority="low">低</button>
+              <button class="priority active" data-priority="medium">中</button>
+              <button class="priority" data-priority="high">高</button>
+            </div>
+            <div class="form-grid" style="margin-top:12px;">
+              <div class="field"><label for="annColor">继承颜色</label><select class="select ann-edit" id="annColor"><option value="ignore">忽略原颜色</option><option value="retain">保留原颜色</option><option value="adapt">转译到目标配色</option></select></div>
+              <div class="field"><label for="annFabric">继承面料</label><select class="select ann-edit" id="annFabric"><option value="ignore">忽略原面料</option><option value="retain">保留原面料</option><option value="adapt">转译到目标面料</option></select></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-view" id="tab-prompt">
+          <div class="section-label">设计提示词</div>
+          <div class="prompt-meta"><span id="promptStats">0 张参考 · 0 处标注</span><span id="promptTime">待编辑</span></div>
+          <div class="prompt-box" id="promptBox"></div>
+          <div class="prompt-actions">
+            <button class="btn" id="copyPromptBtn">复制提示词</button>
+            <button class="btn" id="downloadJsonBtn">导出 JSON</button>
+          </div>
+          <div class="section-label" style="margin-top:18px;">标注数据</div>
+          <div class="json-box" id="jsonBox"></div>
+        </div>
+
+        <div class="tab-view" id="tab-generate">
+          <div class="notice">使用参考原图和局部标注生成新款。出图使用“系统设置”中的独立设计出图接口。</div>
+          <div class="section-label">出图设置</div><div class="field"><label for="designName">设计名称</label><input class="input compile" id="designName" placeholder="例如：城市机能夹克" maxlength="160" /></div>
+          <div class="design-output-controls" id="designOutputControls">
+            <span class="output-label">画面比例</span>
+            <select id="outputAspect" hidden><option value="3:4">3:4</option></select>
+            <div class="design-ratios" id="designRatios" role="radiogroup" aria-label="图片比例"></div>
+            <select id="outputResolution" hidden><option value="1K">1K</option><option value="2K">2K</option><option value="4K">4K</option></select>
+            <select id="outputCount" hidden><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+            <select id="outputModeration" hidden><option value="auto">自动</option><option value="low">低</option></select>
+            <select id="outputSafety" hidden><option value="off">关闭过滤</option><option value="block_all">拦截全部</option><option value="default">接口默认</option></select>
+            <select id="outputSearch" hidden><option value="false">关闭</option><option value="true">开启</option></select>
+            <p class="output-help" id="outputCapabilityHint"></p>
+            <div class="design-output-grid" id="designOutputGroups"></div>
+            <p class="output-pixels" id="outputPixelSummary" aria-live="polite"></p>
+            <button class="btn" id="reloadOutputBtn" type="button" hidden>重新读取出图选项</button>
+          </div>
+          <button class="btn btn-generate generate-wide" id="generateBtn">生成服装效果图</button>
+          <div class="generate-status" id="generateStatus" role="status" aria-live="polite">生成使用原图，有标注时会附上带编号的标注定位图。</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite">已复制</div>
+  <dialog class="asset-picker" id="assetPicker" aria-labelledby="assetPickerTitle" aria-describedby="assetPickerHint">
+    <header class="asset-picker-head">
+      <div><h2 id="assetPickerTitle">从素材库选择</h2><p id="assetPickerHint">可多选，使用素材库中当前的图片版本。</p></div>
+      <button class="btn" id="closeAssetPickerBtn" type="button" aria-label="关闭素材选择">关闭</button>
+    </header>
+    <div class="asset-picker-filters">
+      <div class="asset-filter-field"><label for="assetSearch">搜索素材</label><input class="input" id="assetSearch" type="search" placeholder="输入素材名称" autocomplete="off" /></div>
+      <div class="asset-filter-field"><label for="assetCategory">素材分类</label><select class="select" id="assetCategory"><option value="">全部分类</option></select></div>
+    </div>
+    <div class="asset-picker-feedback"><p id="assetPickerStatus" role="status" aria-live="polite"></p><button class="btn" id="reloadAssetsBtn" type="button" hidden>重新加载</button></div>
+    <div class="asset-picker-grid" id="assetPickerGrid" aria-label="可选择的素材"></div>
+    <div class="asset-picker-pages"><button class="btn" id="assetPrevBtn" type="button">上一页</button><span id="assetPageInfo"></span><button class="btn" id="assetNextBtn" type="button">下一页</button></div>
+    <footer class="asset-picker-footer"><span id="assetSelectionCount" role="status"></span><div><button class="btn" id="cancelAssetPickerBtn" type="button">取消</button><button class="btn btn-primary" id="addAssetsBtn" type="button" disabled>加入参考图库</button></div></footer>
+  </dialog>
+
+<script src="./core.js"></script>
+<script src="./style-controls.js" defer></script>
+<script src="./output-controls.js" defer></script>
+<script src="./design-reuse.js" defer></script>
+<script src="./app.js" defer></script>
+<script src="./asset-picker.js" defer></script>
+</body>
+</html>
